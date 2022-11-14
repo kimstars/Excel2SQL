@@ -11,7 +11,7 @@ Excel2SQL  is a Tool convert Excel dataset to SQL query and insert it to your da
 
 ## Examples
 
-![image-20221114214251830](C:\Users\CHU-TUAN-KIET\AppData\Roaming\Typora\typora-user-images\image-20221114214251830.png)
+![image-20221114214251830](./image/image-20221114214251830.png)
 
 
 
