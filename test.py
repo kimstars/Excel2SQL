@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
 window = tk.Tk()
-window.title("CTK TOOL CỰC MẠNH VIP PRO ")
 window.geometry('1000x500')
 
 def checkThuTu():

@@ -1,2 +1,4 @@
-sam.sql
+*.sql
 *.xlsx
+kiet.*
+/output
