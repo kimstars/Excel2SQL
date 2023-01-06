@@ -22,73 +22,78 @@ def Handle():
     global thutu
     global isconn
     lsSheetname = xls.sheet_names
+    index = 0
     result = []
-    
-    if(isconn):
-        for i in range(len(lsSheetname)):
-            sheetname = lsSheetname[thutu[i]]
-            # tesst 1 sheet
-            df1 = pd.read_excel(xls, sheetname)
-            if(not df1.empty):
-                
-                dicTable = df1.to_dict()
+    try:
+        if(isconn):
+            for i in range(len(lsSheetname)):
+                sheetname = lsSheetname[thutu[i]]
+                index = i
+                # tesst 1 sheet
+                df1 = pd.read_excel(xls, sheetname)
+                if(not df1.empty):
 
-                fields = [key for key in dicTable]
+                    dicTable = df1.to_dict()
 
-                # LAY DU LIEU TREN HANG 
-                strRow = ""
-                for i in range(len(dicTable[fields[0]])):
-                    strline = "("
-                    for key in fields:
-                        itemData = dicTable[key][i]
-                        if(type(itemData) == str):
-                            strline += "N'" +str(itemData) + "'" + ", "
-                        elif(type(itemData) == pd._libs.tslibs.timestamps.Timestamp):
-                            convertDate = itemData.to_pydatetime().strftime('%Y-%m-%d')
-                            print(convertDate)
-                            strline += "'" +str(convertDate) + "'" + ", "
-                        elif(type(itemData) == float):
-                            print(type(itemData))
-                            import numpy as np
-                            #https://note.nkmk.me/en/python-nan-usage/
-                            if(np.isnan(itemData)): 
-                                convertInt = "null"
+                    fields = [key for key in dicTable][1:]
+                    print(fields)
+
+                    # LAY DU LIEU TREN HANG
+                    strRow = ""
+                    for i in range(len(dicTable[fields[0]])):
+                        strline = "("
+                        for key in fields:
+                            itemData = dicTable[key][i]
+                            if(type(itemData) == str):
+                                strline += "N'" +str(itemData) + "'" + ", "
+                            elif(type(itemData) == pd._libs.tslibs.timestamps.Timestamp):
+                                convertDate = itemData.to_pydatetime().strftime('%Y-%m-%d')
+                                # print(convertDate)
+                                strline += "'" +str(convertDate) + "'" + ", "
+                            elif(type(itemData) == float):
+                                # print(type(itemData))
+                                import numpy as np
+                                #https://note.nkmk.me/en/python-nan-usage/
+                                if(np.isnan(itemData)):
+                                    convertInt = "null"
+                                else:
+                                    convertInt = int(itemData)
+                                strline += str(convertInt) + ", "
+
                             else:
-                                convertInt = int(itemData)
-                            strline += str(convertInt) + ", "
-                            
-                        else:
-                            print(type(itemData), itemData)
-                            strline += str(itemData) + ", "
-                            
-                    strRow += strline[:-2] +"), "
-                    
-                dataInsert = strRow[:-2]
+                                # print(type(itemData), itemData)
+                                strline += str(itemData) + ", "
 
-                # LAY TEN COT
+                        strRow += strline[:-2] +"), "
 
-                strNameCol = ""
-                for i in fields:
-                    strNameCol += i +','
-                    
-                strNameCol = strNameCol[:-1]
+                    dataInsert = strRow[:-2]
 
-                query = (f"INSERT INTO {sheetname} ({strNameCol}) VALUES {dataInsert}")
-                print(query)
-                result.append(query)
+                    # LAY TEN COT
 
-            else:
-                print(f"{sheetname} is Empty DataFrame")
-                
-        return result
+                    strNameCol = ""
+                    for i in fields:
+                        strNameCol += i +','
+
+                    strNameCol = strNameCol[:-1]
+
+                    query = (f"INSERT INTO {sheetname} ({strNameCol}) VALUES {dataInsert}")
+                    # print(query)
+                    result.append(query)
+
+                else:
+                    print(f"{sheetname} is Empty DataFrame")
+
+            return result
+    except Exception as e:
+        messagebox.showerror('Error', f"{e} - {index}")
 
 def GetListSheetName():
     global xls
-    
+
     lsSheetname = xls.sheet_names
     result = ""
     for i in range(len(lsSheetname)):
-        result += f"| {i} : {lsSheetname[i]} | "
+        result += f"| {i} : {lsSheetname[i]} |\n "
     return result
 
 
@@ -108,18 +113,18 @@ def connSQL():
     connectstring = t1.get("1.0",END)
     try:
         conn = pypyodbc.connect(connectstring)
-        messagebox.showinfo("OK","Kết nối thành công!!")  
+        messagebox.showinfo("OK","Kết nối thành công!!")
         isconn = True
     except Exception as e:
         isconn = False
         messagebox.showerror("Ổnn't","Kiểm tra lại, đọc hướng dẫn tạo chuỗi nhé!")
-        
-        
+
+
 
 def CheckFile():
     global lsSheetname
     global xls
-    
+
     filepath = e1.get()
     xls = pd.ExcelFile(filepath)
     lsSheetname = xls.sheet_names
@@ -127,14 +132,16 @@ def CheckFile():
     lbmsg.grid(row = 40, column = 25, sticky = W, pady = 2)
 
     lbmsg = tk.Label(text=GetListSheetName(), bg='#1A9F61')
+
+
     lbmsg.grid(row = 50, column = 25, sticky = W, pady = 2)
 
     lbmsg = tk.Label(text=f"Nhập thứ tự insert các bảng (giá trị phải nhỏ hơn {len(lsSheetname)}) \n(Chú ý đến các bảng không có khóa ngoại insert trước, bảng có khóa ngoại insert sau) (Phân cách nhau bởi dấu phẩy. VD: 0,1,3,4,5)", fg='#ff0000')
     lbmsg.grid(row = 60, column = 25, sticky = W, pady = 2)
 
-    
+
     #---------------------
-    
+
 
 
 def checkThuTu():
@@ -143,21 +150,28 @@ def checkThuTu():
     if("," in e2.get()):
         try:
             thutu = e2.get().split(",")
-        
+
             thutu = [int(i) for i in thutu]
             print(thutu)
+            
+            if(len(thutu) < len(lsSheetname)):
+                messagebox.showerror("Ổnn't",f"Bạn phải nhập đủ số lượng bảng")
+                return
             for i in thutu:
                 if(i >= len(lsSheetname)):
                     messagebox.showerror("Ổnn't",f"STT phải nhỏ hơn {len(lsSheetname)}")
-                    return 
+                    return
+            
+                
+            
             messagebox.showinfo("OK","Ổn bạn ơi")
         except Exception as e:
             messagebox.showerror("Error",e)
-            
+
     else:
         messagebox.showerror("Ổnn't","Phải nhập chuỗi có dấu phẩy!")
-        
-        
+
+
 def createQuery():
     global xls
     global thutu
@@ -185,16 +199,18 @@ def InsertToDB():
             messagebox.showinfo("OK","Thêm thành công")
         except Exception as e:
             messagebox.showerror("Error",e)
-            
 
-    
+
+
 
 window = tk.Tk()
+
+
 window.title("CTK TOOL CỰC MẠNH VIP PRO ")
 window.geometry('1000x600')
 
-txt = StringVar()            
-txt1 = StringVar()            
+txt = StringVar()
+txt1 = StringVar()
 
 label = tk.Label(text="Tool Insert Dataset from Excel to MSSQL by CTK", font=20,border=5, fg="#6366F1")
 label.grid(row = 0, column = 25, sticky = W, pady = 2)
